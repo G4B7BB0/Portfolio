@@ -5,7 +5,7 @@ const CONFIG = {
   email: 'gabrielebertezago@gmail.com',
   discord: 'https://discord.com/users/g4b7bb0',
   maxProjects: 6,        // quanti repository mostrare
-  hiddenRepos: [],       // nomi di repository da non mostrare, es. ['prova', 'test']
+  hiddenRepos: ['berte-portfolio'], // repository esclusi dalla sezione progetti
   featuredRepos: ['pc-build-optimizer', 'ExpenseTracker', 'PasswordManager', 'File-Crypto-Tool'],
   projectDetails: {
     'pc-build-optimizer': {
