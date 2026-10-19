@@ -1,26 +1,25 @@
 # Berte — Portfolio
 
-Portfolio personale realizzato con HTML, CSS e JavaScript. Presenta il mio percorso, alcuni progetti e i contatti.
+A personal portfolio built with HTML, CSS, and JavaScript. It brings together my projects, background, and contact details.
 
-[Apri il sito](https://g4b7bb0.github.io/berte-portfolio/)
+[Visit the live site](https://g4b7bb0.github.io/berte-portfolio/)
 
-## Progetti
+## Projects
 
-La sezione dei progetti legge i repository pubblici dal profilo GitHub. Se l’API non è disponibile, mostra la selezione configurata in `app.js`.
+The projects section loads public repositories from my GitHub profile. If GitHub’s API is unavailable, it displays the projects configured in `app.js`.
 
-## Avvio locale
+## Run locally
 
-Apri `index.html` nel browser. Per caricare i repository, il browser deve poter raggiungere l’API pubblica di GitHub.
+Open `index.html` in a browser. To load repositories dynamically, the browser needs access to GitHub’s public API.
 
-In alternativa, dalla cartella del progetto esegui:
+You can also start a local server from the project folder:
 
 ```bash
 python -m http.server 8000
 ```
 
-Poi visita `http://localhost:8000`.
+Then visit [http://localhost:8000](http://localhost:8000).
 
-## Pubblicazione
+## Deployment
 
-Il sito è statico e può essere pubblicato con GitHub Pages dalla cartella principale del branch `main`.
-
+This is a static site hosted with GitHub Pages from the root of the `main` branch.
