@@ -4,9 +4,9 @@ const CONFIG = {
   linkedin: 'https://linkedin.com/in/gabriele-bertezago-8b9aba371',
   email: 'gabrielebertezago@gmail.com',
   discord: 'https://discord.com/users/g4b7bb0',
-  maxProjects: 6,        // quanti repository mostrare
+  maxProjects: 4,        // quanti repository mostrare
   hiddenRepos: ['berte-portfolio'], // repository esclusi dalla sezione progetti
-  featuredRepos: ['pc-build-optimizer', 'ExpenseTracker', 'PasswordManager', 'File-Crypto-Tool'],
+  featuredRepos: ['pc-build-optimizer', 'ExpenseTracker', 'File-Crypto-Tool', 'PasswordManager'],
   projectDetails: {
     'pc-build-optimizer': {
       kind: { it: 'Prototipo web', en: 'Web prototype' },
@@ -120,7 +120,7 @@ const copy = {
 };
 
 let language = (navigator.language || 'it').toLowerCase().startsWith('en') ? 'en' : 'it';
-let repoState = { status: 'loading', repos: [] };
+let repoState = { status: 'loading', repos: [], total: null };
 
 const t = key => copy[language][key];
 
@@ -202,27 +202,33 @@ function renderContacts() {
 
 /* Progetti da GitHub */
 async function loadRepos() {
-  if (!CONFIG.github) { repoState = { status: 'nogithub', repos: [] }; renderProjects(); return; }
-  try {
-    const res = await fetch(`https://api.github.com/users/${encodeURIComponent(CONFIG.github)}/repos?per_page=100&sort=updated`);
-    if (!res.ok) throw new Error(res.status);
-    const all = await res.json();
-    const repos = all
-      .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== CONFIG.github.toLowerCase() && !CONFIG.hiddenRepos.includes(r.name))
-      .sort((a, b) => {
-        const aIndex = CONFIG.featuredRepos.indexOf(a.name);
-        const bIndex = CONFIG.featuredRepos.indexOf(b.name);
-        if (aIndex !== -1 || bIndex !== -1) {
-          if (aIndex === -1) return 1;
-          if (bIndex === -1) return -1;
-          if (aIndex !== bIndex) return aIndex - bIndex;
-        }
-        return new Date(b.pushed_at) - new Date(a.pushed_at);
-      });
-    repoState = { status: repos.length ? 'ok' : 'empty', repos };
-  } catch (e) {
+  if (!CONFIG.github) { repoState = { status: 'nogithub', repos: [], total: null }; renderProjects(); return; }
+
+  const username = encodeURIComponent(CONFIG.github);
+  const [reposResult, profileResult] = await Promise.allSettled([
+    fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`),
+    fetch(`https://api.github.com/users/${username}`)
+  ]);
+
+  let total = null;
+  if (profileResult.status === 'fulfilled' && profileResult.value.ok) {
+    try {
+      const profile = await profileResult.value.json();
+      if (Number.isInteger(profile.public_repos)) total = profile.public_repos;
+    } catch (e) { /* Il conteggio verrà ricavato dall’elenco dei repository. */ }
+  }
+
+  if (reposResult.status === 'fulfilled' && reposResult.value.ok) {
+    const all = await reposResult.value.json();
+    total ??= all.length;
+    const repos = CONFIG.featuredRepos
+      .map(name => all.find(repo => repo.name.toLowerCase() === name.toLowerCase()))
+      .filter(Boolean);
+    repoState = { status: repos.length ? 'ok' : 'empty', repos, total };
+  } else {
     repoState = {
       status: 'ok',
+      total,
       repos: CONFIG.featuredRepos.map(name => ({
         name,
         html_url: `https://github.com/${CONFIG.github}/${encodeURIComponent(name)}`,
@@ -251,7 +257,7 @@ function renderProjects() {
   if (CONFIG.github) all.href = `https://github.com/${CONFIG.github}?tab=repositories`;
 
   const messages = { loading: 'loading', nogithub: 'noGithub', empty: 'noRepos', error: 'errorRepos' };
-  document.getElementById('repoCount').textContent = String(repoState.repos.length).padStart(2, '0');
+  document.getElementById('repoCount').textContent = repoState.total == null ? '—' : String(repoState.total).padStart(2, '0');
   if (repoState.status !== 'ok') {
     const p = document.createElement('p');
     p.className = 'projects-status';
